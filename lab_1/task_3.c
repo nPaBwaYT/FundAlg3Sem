@@ -95,8 +95,13 @@ enum StatusCode equation(int* argc, char* argv[]) {
     
     for (int i = 0; i < 6; ++i) {
         if (fabs(a) < eps) {
-            solutions[i] = NAN;
-            solutions[i+6] = NAN;
+            if (fabs(b) < eps) {
+                solutions[i] = NAN;
+                solutions[i+6] = NAN;
+            } else {
+                solutions[i] = -c/b;
+                solutions[i+6] = -c/b;
+            }
         } else {
             solutions[i] = (-b + sqrt(b*b - 4*a*c))/(2*a);
             solutions[i+6] = (-b - sqrt(b*b - 4*a*c))/(2*a);
