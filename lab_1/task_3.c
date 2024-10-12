@@ -106,8 +106,11 @@ enum StatusCode equation(int* argc, char* argv[]) {
             solutions[i] = (-b + sqrt(b*b - 4*a*c))/(2*a);
             solutions[i+6] = (-b - sqrt(b*b - 4*a*c))/(2*a);
         }
-
-        printf("%gx^2 %gx %g: %g %g\n", a, b, c, solutions[i], solutions[i+6]);
+        if (solutions[i] == NAN) {
+            printf("%gx^2 %gx %g: Нет вещественных корней\n", a, b, c);
+        } else {
+            printf("%gx^2 %gx %g: %g %g\n", a, b, c, solutions[i], solutions[i+6]);
+        }
 
         buff = b;
         b = a;
@@ -191,22 +194,33 @@ enum StatusCode triangle(int* argc, char* argv[]) {
 
 enum StatusCode main(int argc, char* argv[]) {
     if (argc < 4) {
+        printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
         return WRONG_NUMBER_OF_ARGS;
     }
     if (argv[1][0] != '/' && argv[1][0] != '-') {
+        printf("Terminated with exit code %d\n", SECOND_ARG_MUST_BE_A_FLAG);
         return SECOND_ARG_MUST_BE_A_FLAG;
     }
 
+    enum StatusCode code = OK;
     switch (argv[1][1]) 
     {
     case 'q':
-        return equation(&argc, argv);
+        code = equation(&argc, argv);
+        break;
     case 'm':
-        return is_multiple(&argc, argv);
+        code = is_multiple(&argc, argv);
+        break;
     case 't':
-        return triangle(&argc, argv);
+        code = triangle(&argc, argv);
+        break;
 
     default:
-        return WRONG_FLAG;
+        code = WRONG_FLAG;
+        break;
     }
+    if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
+    }
+    return code;
 }

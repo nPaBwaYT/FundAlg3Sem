@@ -5,6 +5,17 @@ enum StatusCode {OK, WRONG_NUMBER_OF_ARGS, SECOND_ARG_MUST_BE_A_FLAG,
 FILE_ERROR, WRONG_FLAG};
 
 
+enum StatusCode skip_spaces(FILE* file_in, char* c) {
+    while (*c == ' ' || *c == '\t' || *c == '\n') {
+        if (fscanf(file_in, "%c", c) == EOF) {
+            *c = ' ';
+            break;
+        }
+    }
+    return OK;
+}
+
+
 enum StatusCode comb(FILE* file_in_1, FILE* file_in_2, FILE* file_out) {
     char c = ' ';
     int end_1 = 0;
@@ -12,12 +23,9 @@ enum StatusCode comb(FILE* file_in_1, FILE* file_in_2, FILE* file_out) {
     
     while ((!end_1) || (!end_2)) {
         if (!end_1) {
-            while (c == ' ' || c == '\t' || c == '\n') {
-                if (fscanf(file_in_1, "%c", &c) == EOF) {
-                    end_1 = 1;
-                    c = ' ';
-                    break;
-                }
+            skip_spaces(file_in_1, &c);
+            if (c == ' ') {
+                end_1 = 1;
             }
             
             while ((c != ' ') && (c != '\t') && (c != '\n') && (!end_1)) {
@@ -36,12 +44,9 @@ enum StatusCode comb(FILE* file_in_1, FILE* file_in_2, FILE* file_out) {
         }
         
         if (!end_2) {
-            while (c == ' ' || c == '\t' || c == '\n') {
-                if (fscanf(file_in_2, "%c", &c) == EOF) {
-                    end_2 = 1;
-                    c = ' ';
-                    break;
-                }
+            skip_spaces(file_in_2, &c);
+            if (c == ' ') {
+                end_2 = 1;
             }
             
             while ((c != ' ') && (c != '\t') && (c != '\n') && (!end_2)) {
@@ -82,12 +87,9 @@ enum StatusCode strange(FILE* file_in, FILE* file_out) {
     int n = 0;
     
     while (!end) {
-        while (c == ' ' || c == '\t' || c == '\n') {
-            if (fscanf(file_in, "%c", &c) == EOF) {
-                end = 1;
-                c = ' ';
-                break;
-            }
+        skip_spaces(file_in, &c);
+        if (c == ' ') {
+            break;
         }
         ++n;
         while ((c != ' ') && (c != '\t') && (c != '\n') && (!end)) {
@@ -122,9 +124,11 @@ enum StatusCode strange(FILE* file_in, FILE* file_out) {
 
 enum StatusCode main(int argc, char* argv[]) {
     if (argc < 4) {
+        printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
         return WRONG_NUMBER_OF_ARGS;
     }
     if (argv[1][0] != '/' && argv[1][0] != '-') {
+        printf("Terminated with exit code %d\n", SECOND_ARG_MUST_BE_A_FLAG);
         return SECOND_ARG_MUST_BE_A_FLAG;
     }
 
@@ -132,6 +136,7 @@ enum StatusCode main(int argc, char* argv[]) {
     enum StatusCode code = OK;
 
     if ((file_in_1 = fopen(argv[2], "r")) == NULL) {
+        printf("Terminated with exit code %d\n", FILE_ERROR);
         return FILE_ERROR;
     }
     
@@ -140,23 +145,29 @@ enum StatusCode main(int argc, char* argv[]) {
     {
     case 'r':
         if (argc != 5) {
+            printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
             return WRONG_NUMBER_OF_ARGS;
         }
         FILE *file_in_2;
         if ((file_in_2 = fopen(argv[3], "r")) == NULL) {
+            printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
             return FILE_ERROR;
         }
         if ((file_out = fopen(argv[4], "w")) == NULL) {
+            printf("Terminated with exit code %d\n", FILE_ERROR);
             return FILE_ERROR;
         }
         code = comb(file_in_1, file_in_2, file_out);
         fclose(file_in_2);
         break;
+        
     case 'a':
         if (argc != 4) {
+            printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
             return WRONG_NUMBER_OF_ARGS;
         }
         if ((file_out = fopen(argv[3], "w")) == NULL) {
+            printf("Terminated with exit code %d\n", FILE_ERROR);
             return FILE_ERROR;
         }
         code = strange(file_in_1, file_out);
@@ -169,6 +180,9 @@ enum StatusCode main(int argc, char* argv[]) {
 
     fclose(file_in_1);
     fclose(file_out);
-
+    
+    if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
+    }
     return code;
 }

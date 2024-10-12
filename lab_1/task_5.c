@@ -108,28 +108,55 @@ enum StatusCode b(const double* x, const double* eps, double* ans) {
 
 enum StatusCode main (int argc, char* argv[]) {
     if (argc != 3) {
+        printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
         return WRONG_NUMBER_OF_ARGS;
     }
+    
     double eps;
     double x;
     enum StatusCode code;
     code = read_double(argv[1], &eps);
     if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
         return code;
     }
-    if (eps < 0) {
+    if (eps <= 0) {
+        printf("Terminated with exit code %d\n", EPS_MUST_BE_POSITIVE);
         return EPS_MUST_BE_POSITIVE;
     }
     code = read_double(argv[2], &x);
     if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
         return code;
     }
 
     double var_a, var_b, var_c, var_d;
     code = fmax(a(&x, &eps, &var_a), fmax(b(&x, &eps, &var_b), fmax(c(&x, &eps, &var_c), d(&x, &eps, &var_d))));
     if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
         return code;
     }
-    printf("a. %g\nb. %g\nc. %g\nd. %g\n", var_a, var_b, var_c, var_d);
+    printf("Точность вычислений ограничена 10е7 итераций\n\n");
+
+    if (var_a == NAN || var_a == INFINITY) {
+        printf("a. Не считается\n");
+    } else {
+        printf("a. %g\n", var_a);
+    }
+    if (var_b == NAN || var_b == INFINITY) {
+        printf("b. Не считается\n");
+    } else {
+        printf("b. %g\n", var_b);
+    }
+    if (var_c == NAN || var_c == INFINITY) {
+        printf("c. Не считается\n");
+    } else {
+        printf("c. %g\n", var_c);
+    }
+    if (var_d == NAN || var_d == INFINITY) {
+        printf("a. Не считается\n");
+    } else {
+        printf("a. %g\n", var_d);
+    }
     return(OK);
 }

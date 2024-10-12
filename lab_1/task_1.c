@@ -79,9 +79,7 @@ enum StatusCode hex(const int* number) {
 
 enum StatusCode exp_tab(const int* number) {
     if (*number < 1 || *number > 10) {
-        printf("Число за пределами диапазона\n");
-        return OK;
-        // return OUT_OF_RANGE;
+        return OUT_OF_RANGE;
     }
 
     int exp;
@@ -139,28 +137,42 @@ enum StatusCode main(int argc, char* argv[]) {
     int number;
     code = read_number(argv[1], &number);
     if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
         return code;
     }
 
     if (argv[2][0] != '-' && argv[2][0] != '/') {
+        printf("Terminated with exit code %d\n", SECOND_ARG_MUST_BE_A_FLAG);
         return SECOND_ARG_MUST_BE_A_FLAG;
     }
 
     switch (argv[2][1]) 
     {
     case 'h':
-        return multiples(&number);
+        code = multiples(&number);
+        break;
     case 'p':
-        return is_prime(&number);
+        code = is_prime(&number);
+        break;
     case 's':
-        return hex(&number);
+        code = hex(&number);
+        break;
     case 'e':
-        return exp_tab(&number);
+        code = exp_tab(&number);
+        break;
     case 'a':
-        return sum(&number);
+        code = sum(&number);
+        break;
     case 'f':
-        return fact(&number);
+        code = fact(&number);
+        break;
     default:
-        return WRONG_FLAG;
+        code = WRONG_FLAG;
+        break;
     }
+
+    if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
+    }
+    return code;
 }

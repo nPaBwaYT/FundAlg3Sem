@@ -5,6 +5,11 @@ enum StatusCode {OK, WRONG_NUMBER_OF_ARGS, SECOND_ARG_MUST_BE_A_FLAG,
 FILE_ERROR, WRONG_FLAG};
 
 
+int is_alnum(char c) {
+    return ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
+        || (c >= '0' && c <= '9') || (c == ' '));
+}
+
 enum StatusCode split_filepath(char* directory_path, char* filename, char* path) {
     char* r = path;
     char* w = directory_path;
@@ -63,8 +68,7 @@ enum StatusCode zzzzzzzzooooooovvvvv(FILE* file_in, FILE* file_out) {
         if (c == '\n') {
             fprintf(file_out, "%lld\n", counter);
             counter = 0;
-        } else if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z')
-        || (c >= '0' && c <= '9') || (c == ' '))) {
+        } else if (!is_alnum(c)) {
             counter += 1;
         }
     }
@@ -98,9 +102,11 @@ enum StatusCode hex(FILE* file_in, FILE* file_out) {
 
 enum StatusCode main(int argc, char* argv[]) {
     if (argc < 3) {
+        printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
         return WRONG_NUMBER_OF_ARGS;
     }
     if (argv[1][0] != '/' && argv[1][0] != '-') {
+        printf("Terminated with exit code %d\n", SECOND_ARG_MUST_BE_A_FLAG);
         return SECOND_ARG_MUST_BE_A_FLAG;
     }
 
@@ -110,29 +116,35 @@ enum StatusCode main(int argc, char* argv[]) {
     enum StatusCode code = OK;
 
     if ((file_in = fopen(argv[2], "r")) == NULL) {
+        printf("Terminated with exit code %d\n", FILE_ERROR);
         return FILE_ERROR;
     }
 
     if (argv[1][1] == 'n') {
         if (argc != 4) {
+            printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
             return WRONG_NUMBER_OF_ARGS;
         }
         if ((file_out = fopen(argv[3], "w")) == NULL) {
+            printf("Terminated with exit code %d\n", FILE_ERROR);
             return FILE_ERROR;
         }
         n = 1;
     } else {
         if (argc != 3) {
+            printf("Terminated with exit code %d\n", WRONG_NUMBER_OF_ARGS);
             return WRONG_NUMBER_OF_ARGS;
         }
         char filename[32];
         char directory_path[128];
         code = split_filepath(directory_path, filename, argv[2]);
         if (code != OK) {
+            printf("Terminated with exit code %d\n", code);
             return code;
         }       
         
         if ((file_out = fopen(strcat(strcat(directory_path, "out_"), filename), "w")) == NULL) {
+            printf("Terminated with exit code %d\n", FILE_ERROR);
             return FILE_ERROR;
         }
     }
@@ -159,6 +171,10 @@ enum StatusCode main(int argc, char* argv[]) {
 
     fclose(file_in);
     fclose(file_out);
+
+    if (code != OK) {
+        printf("Terminated with exit code %d\n", code);
+    }
 
     return code;
 }
