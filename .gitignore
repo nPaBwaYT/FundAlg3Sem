@@ -1,3 +1,9 @@
-**/*.a
-**/*.exe
+**/*.out
 **/.vscode
+
+./notes
+./examples
+
+*.pdf
+*.lib
+*.md

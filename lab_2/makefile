@@ -2,9 +2,12 @@ CС=gcc
 CFLAGS= -Wall -Werror -Wextra
 CLIBS= -lm
 
-SOURCES=task_1.c task_2.c task_3.c# Тут вы перечислятете файлы с вашими лабами по 1 файлу на задание
-TEST_TEMPLATES_DIR=../../test_templates# Это директория с шаблонами тестов (если вы их разместите в той же директории что и лабы пишите ./)
-EXECUTABLES=$(SOURCES:.c=.a)
+SOURCES=task_1.c task_2.c task_3.c
+OUTPUT_DIR=./output
+LIB_DIR=./my_lib
+TEST_TEMPLATES_DIR=../test_templates
+EXECUTABLES=$(SOURCES:.c=.out)
+MY_LIBS=my_string.lib
 BASH=bash
 
 
@@ -26,14 +29,22 @@ FAILED_IFILE_RFILE_OFILE=$(BASH) $(TEST_TEMPLATES_DIR)/failed_ifile_rfile_ofile
 
 .PHONY: all test clean
 
-all: $(EXECUTABLES) # Чтобы собрать все лабы надо ввести команду make
+all: libs $(EXECUTABLES)
 
-%.a : %.c
-	$(CC) $(CFLAGS) $< $(CLIBS) -o $@
+%.out: %.c
+	$(CC) $(CFLAGS) $< $(CLIBS) ./mlb.lib -o $(OUTPUT_DIR)/$@
 
-clean: # Чтобы удалить все исполняемые файлы надо ввести команду make clean
-	rm -r -f *.a
+clean:
+	rm -r -f $(OUTPUT_DIR)/*.out
+	rm -r -f files/*_out.txt
+	rm -f ./*.lib
 
+libs: $(MY_LIBS)
+	ar r ./mlb.lib $(LIB_DIR)/*.lib
+	rm $(LIB_DIR)/*.lib
+
+%.lib: $(LIB_DIR)/%.c
+	$(CC) $(CFLAGS) -c $< $(CLIBS) -o $(LIB_DIR)/$@
 
 # Принцип формирования названия выполняемого теста:
 #
@@ -74,7 +85,7 @@ clean: # Чтобы удалить все исполняемые файлы на
 # 3) $(SUCCESS_RFILE_CMD) "<вызов исполняемого файла с его аргументами>" "<ожидаемый в консоль вывод>" "<выходной файл>" "<файл с которым должен совпадать выходной файл>"
 #
 # 1) $(SUCCESS_OFILE) "<вызов исполняемого файла с его аргументами>" "<файл с ожидаемым в консоль выводом>"
-# 2) $(FAIED_OFILE) "<вызов исполняемого файла с его аргументами>" "<ожидаемый код возврата отличный от 0>" "<файл с ожидаемым в консоль выводом>"
+# 2) $(FAILED_OFILE) "<вызов исполняемого файла с его аргументами>" "<ожидаемый код возврата отличный от 0>" "<файл с ожидаемым в консоль выводом>"
 # 3) $(SUCCESS_RFILE_OFILE) "<вызов исполняемого файла с его аргументами>" "<файл с ожидаемым в консоль выводом>" "<выходной файл>" "<файл с которым должен совпадать выходной файл>"
 # 
 # 1) $(SUCCESS_IFILE_OFILE) "<вызов исполняемого файла с его аргументами>" "<файл данными которые вводятся в консоль через stdin>" "<файл с ожидаемым в консоль выводом>" 
@@ -88,44 +99,57 @@ clean: # Чтобы удалить все исполняемые файлы на
 # Символ @ необходимо писать для подавления лишнего вывода в консоль при выполнении make файла.
 #  
 
-test_task_1: test_command_args_1 test_command_args_ofile_1 test_input_output_success_1
+test_task_1: test_command_args_failed_1 test_command_args_success_1
 	
 
-test_command_args_1:
-	@$(FAILED_CMD) "task_1.a" -1 "Incorrect args count"
+test_command_args_failed_1:
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -l" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -l abc abc" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -r" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -r abc abc" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -u" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -u abc abc" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -n" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -n abc abc" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c 123" 1 "error 1: Wrong number of arguments"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out p a" 2 "error 2: First argument must be a flag"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -p a" 3 "error 3: Flag is not supported"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c a abc" 4 "error 4: Second argument must be uint"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c -2 abc" 4 "error 4: Second argument must be uint"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c /13 abc" 4 "error 4: Second argument must be uint"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c 1.5 abc" 4 "error 4: Second argument must be uint"
+	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c 123213n1 abc" 4 "error 4: Second argument must be uint"
 	@echo "TEST 1 PASSED"
 
-test_command_args_ofile_1:
-	@$(FAILED_OFILE) "task_1.a" -1 "./failed_output_file_for_task_1.txt"
+test_command_args_success_1:
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -l a" "1"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -l abc_" "4"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -r b" "b"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -r abc" "cba"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -u a" "a"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -u abcde123ABCDE" "aBcDe123ABCDE"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -n a" "a"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -n 1ab2!c3d@4e" "1234abcde!@"
+	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -c 1 abc" "abc"
 	@echo "TEST 2 PASSED"
 
-test_input_output_success_1:
-	@$(SUCCESS_IFILE_OFILE) "task_1.a 12" "console_input_file_for_task_1.txt" "2_output_for_task_1.txt"
+test_task_2: test_ifile_ofile_success_2
+
+test_ifile_ofile_success_2:
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_2.out" "files/task_2_in_1.txt" "files/task_2_test_1.txt"
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_2.out" "files/task_2_in_2.txt" "files/task_2_test_2.txt"
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_2.out" "files/task_2_in_3.txt" "files/task_2_test_3.txt"
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_2.out" "files/task_2_in_4.txt" "files/task_2_test_4.txt"
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_2.out" "files/task_2_in_5.txt" "files/task_2_test_5.txt"
 	@echo "TEST 3 PASSED"
 
+test_task_3: test_ifile_ofile_success_3
 
-test_task_2: test_command_args_2 test_success_task_2
-
-
-test_command_args_2:
-	@$(FAILED_CMD) "task_2.a" 2 "Incorrect args count"
+test_ifile_ofile_success_3:
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_3.out" "files/task_3_in_1.txt" "files/task_3_test_1.txt"
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_3.out" "files/task_3_in_2.txt" "files/task_3_test_2.txt"
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_3.out" "files/task_3_in_3.txt" "files/task_3_test_3.txt"
 	@echo "TEST 4 PASSED"
 
-test_success_task_2:
-	@$(SUCCESS_RFILE_CMD) "task_2.a ./input_file_for_task_2.txt ./output_file_for_task_2.txt" "" "./output_file_for_task_2.txt" "expected_data_for_task_2.txt"
-	@echo "TEST 5 PASSED"
-
-test_task_3: test_command_args_3 test_success_task_3
-
-
-test_command_args_3:
-	@$(FAILED_CMD) "task_3.a" -1 "Incorrect args count"
-	@echo "TEST 6 PASSED"
-
-
-test_success_task_3:
-	@$(SUCCESS_CMD) "task_3.a 1 2" "argv_1+argv_2=3"
-	@echo "TEST 7 PASSED"
-
-test: test_task_1 test_task_2 test_task_3 # Здесь перечисляются все написанные вами тесты. Запуск тестов производится по команде make test
-	
+test: test_task_1 test_task_2 test_task_3
