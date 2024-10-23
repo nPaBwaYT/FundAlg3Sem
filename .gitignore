@@ -4,6 +4,7 @@
 ./notes
 ./examples
 
+*out.txt
 *.pdf
 *.lib
 *.md

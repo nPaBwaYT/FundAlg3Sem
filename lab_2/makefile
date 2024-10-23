@@ -2,7 +2,7 @@ CС=gcc
 CFLAGS= -Wall -Werror -Wextra
 CLIBS= -lm
 
-SOURCES=task_1.c task_2.c task_3.c
+SOURCES=task_1.c task_2.c task_3.c task_4.c task_5.c task_6.c task_7.c task_8.c task_9.c task_10.c
 OUTPUT_DIR=./output
 LIB_DIR=./my_lib
 TEST_TEMPLATES_DIR=../test_templates
