@@ -1,0 +1,22 @@
+Add(x^2-1); %heh
+
+Add(x, x); [some kind of 
+           comment]
+
+Sub(x^2 - 2);
+Eval(2);Mult(x+1);
+
+Div(x+1);        [a teper' tantsi]   Cmps(x^2 +x-
+3);
+
+Diff();
+                                                Diff();
+Mod(x^3 +3x^2
+        -4x +1, x-2);
+
+[nu vrode rabotaet]
+
+Add(-2x^3 +4x^2             -3, x-4x^2 +2);
+Eval(3);
+Cmps(x-1);
+Diff(x^2-3);
