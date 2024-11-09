@@ -91,25 +91,7 @@ int comparator_a(const void* a, const void* b) {
 }
 
 int comparator_d(const void* a, const void* b) {
-    Employee* first = (Employee*)a;
-    Employee* second = (Employee*)b;
-    if (first->wage != second->wage) {
-        return first->wage < second->wage;
-    }
-
-    if (strcmp(first->first_name, second->first_name) > 0) {
-        return 0;
-    } else if (strcmp(first->first_name, second->first_name) < 0) {
-        return 1;
-    }
-
-    if (strcmp(first->second_name, second->second_name) > 0) {
-        return 0;
-    } else if (strcmp(first->second_name, second->second_name) < 0) {
-        return 1;
-    } 
-
-    return first->id > second->id;
+    return !comparator_a(a, b);
 }
 
 int for_a(const char* first_file, const char* second_file) {

@@ -7,7 +7,7 @@ OUTPUT_DIR=./output
 LIB_DIR=./my_lib
 TEST_TEMPLATES_DIR=../test_templates
 EXECUTABLES=$(SOURCES:.c=.out)
-MY_LIBS=poly.lib
+MY_LIBS=poly.lib tree.lib
 BASH=bash
 
 
@@ -99,40 +99,36 @@ libs: $(MY_LIBS)
 # Символ @ необходимо писать для подавления лишнего вывода в консоль при выполнении make файла.
 #  
 
-test_task_1: test_command_args_failed_1 test_command_args_success_1
-	
-
-test_command_args_failed_1:
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -l" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -l abc abc" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -r" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -r abc abc" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -u" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -u abc abc" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -n" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -n abc abc" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c 123" 1 "error 1: Wrong number of arguments"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out p a" 2 "error 2: First argument must be a flag"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -p a" 3 "error 3: Flag is not supported"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c a abc" 4 "error 4: Second argument must be uint"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c -2 abc" 4 "error 4: Second argument must be uint"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c /13 abc" 4 "error 4: Second argument must be uint"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c 1.5 abc" 4 "error 4: Second argument must be uint"
-	@$(FAILED_CMD) "./$(OUTPUT_DIR)/task_1.out -c 123213n1 abc" 4 "error 4: Second argument must be uint"
-	@echo "TEST 1 PASSED"
-
-test_command_args_success_1:
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -l a" "1"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -l abc_" "4"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -r b" "b"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -r abc" "cba"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -u a" "a"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -u abcde123ABCDE" "aBcDe123ABCDE"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -n a" "a"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -n 1ab2!c3d@4e" "1234abcde!@"
-	@$(SUCCESS_CMD) "./$(OUTPUT_DIR)/task_1.out -c 1 abc" "abc"
-	@echo "TEST 2 PASSED"
+test_task_1:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_2:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_3:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_4:
+	@$(SUCCESS_IFILE_OFILE) "./$(OUTPUT_DIR)/task_4.out" "./files/task_4_in.txt" "./files/task_4_test.txt"
+	@echo "test passed"
+test_task_5:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_6:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_7:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_8:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_9:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
+test_task_10:
+	@$(SUCCESS_RFILE_CMD) "./$(OUTPUT_DIR)/task_3.out ./files/task_3_res.txt -d ./files/task_3_out.txt" "" "./files/task_3_out.txt" "./files/task_3_test.txt"
+	@echo "test passed"
 
 
-test: test_task_1
+test: test_task_3 test_task_4

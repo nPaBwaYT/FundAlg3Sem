@@ -5,45 +5,45 @@
 #include <ctype.h>
 
 
-enum Errors {
+enum  errors{
     ERROR = -1,
     SUCCESS,
 };
 
-typedef struct String {
+typedef struct string_t{
     char* str;
     int symbols;
-} String;
+} string_t;
 
 
-typedef struct Address {
-    String town;
-    String street;
+typedef struct address_t {
+    string_t town;
+    string_t street;
     int house;
-    String corpus;
+    string_t corpus;
     int apartNumber;
-    String index;
+    string_t index;
 
-} Address;
+} address_t;
 
-typedef struct Mail {
-    Address address;
+typedef struct mail_t {
+    address_t address;
     float weight;
-    String mailID;
-    String createdTime;
-    String deliveryTime;
-} Mail;
+    string_t mailID;
+    string_t createdTime;
+    string_t deliveryTime;
+} mail_t;
 
 
 typedef struct Post {
-    Address* addres;
-    Mail* mails;
+    address_t* addres;
+    mail_t* mails;
     int count;
     int capacity;
 } Post;
 
 //Вспомогательные функции
-char* GetNowTime() {
+char* get_current_time() {
     time_t now;
     time(&now);
 
@@ -57,7 +57,7 @@ char* GetNowTime() {
     return buffer;
 }
 
-int ValidateIndex(char* index) {
+int validate_idx(char* index) {
     if (strlen(index) == 6 || strlen(index) == 14) {
         for (int i = 0; i < (int)strlen(index); i++) {
             if (!isdigit(index[i])) {
@@ -69,7 +69,7 @@ int ValidateIndex(char* index) {
     return ERROR;
 }
 
-int stringToTm(char* dateStr, struct tm* timeStruct) {
+int strtotime(char* dateStr, struct tm* timeStruct) {
     if (sscanf(dateStr, "%d:%d:%d %d:%d:%d", 
                &timeStruct->tm_mday, &timeStruct->tm_mon, &timeStruct->tm_year,
                &timeStruct->tm_hour, &timeStruct->tm_min, &timeStruct->tm_sec) != 6) {
@@ -83,13 +83,13 @@ int stringToTm(char* dateStr, struct tm* timeStruct) {
     return SUCCESS;
 }
 
-int CompareTime(const void* a, const void* b) {
-    Mail* m1 = (Mail*)a;
-    Mail* m2 = (Mail*)b;
+int time_cmp(const void* a, const void* b) {
+    mail_t* m1 = (mail_t*)a;
+    mail_t* m2 = (mail_t*)b;
     struct tm t1 = {0};
     struct tm t2 = {0};
-    stringToTm(m1->createdTime.str, &t1);
-    stringToTm(m2->createdTime.str, &t2);
+    strtotime(m1->createdTime.str, &t1);
+    strtotime(m2->createdTime.str, &t2);
     
     time_t time1 = mktime(&t1);
     time_t time2 = mktime(&t2);
@@ -104,8 +104,8 @@ int CompareTime(const void* a, const void* b) {
 
 
 //Функции String
-String* CreateString(char* str) {
-    String* s = (String*)malloc(sizeof(String));
+string_t* str_init(char* str) {
+    string_t* s = (string_t*)malloc(sizeof(string_t));
     if (s == NULL) {
         return NULL;
     }
@@ -119,13 +119,13 @@ String* CreateString(char* str) {
     return s;
 }
 
-int DeleteString(String* str) {
+int string_delete(string_t* str) {
     str->str[0] = '\0';
     str->symbols = 0;
     return SUCCESS;
 }
 
-int CompareString(String* s1, String* s2) {
+int string_cmp(string_t* s1, string_t* s2) {
     if (s1->symbols > s2->symbols) {
         return 1;
     } else if (s1->symbols == s2->symbols) {
@@ -135,7 +135,7 @@ int CompareString(String* s1, String* s2) {
     }
 }
 
-int CopyString(String* s1, String* s2) {
+int string_cpy(string_t* s1, string_t* s2) {
     if (s1->str == NULL || s2->str == NULL) {
         return ERROR;
     }
@@ -146,22 +146,22 @@ int CopyString(String* s1, String* s2) {
 }
 
 
-String* CopyAndCreateString(String* s) {
+string_t* string_icpy(string_t* s) {
     if (s == NULL) {
         return NULL;
     }
-    String* new_s = CreateString(s->str);
+    string_t* new_s = str_init(s->str);
     if (new_s == NULL) {
         return NULL;
     }
     return new_s;
 }
 
-int EquivalenceString(String* s1, String* s2) {
+int string_eq(string_t* s1, string_t* s2) {
     return (s1->symbols == s2->symbols) && (strcmp(s1->str,s2->str) == 0);
 }
 
-int ConcatenationString(String* s1, String* s2) {
+int string_concatenate(string_t* s1, string_t* s2) {
     if (s1->str == NULL || s2->str == NULL) {
         return ERROR;
     }
@@ -171,8 +171,8 @@ int ConcatenationString(String* s1, String* s2) {
 }
 
 //Функции Mail
-Mail* CreateMail(Address* address, float weight, String* mailId, String* createdTime, String* deliveryTime) {
-    Mail* mail = (Mail*)malloc(sizeof(Mail));
+mail_t* mail_init(address_t* address, float weight, string_t* mailId, string_t* createdTime, string_t* deliveryTime) {
+    mail_t* mail = (mail_t*)malloc(sizeof(mail_t));
     if (mail == NULL) {
         return NULL;
     }
@@ -184,8 +184,8 @@ Mail* CreateMail(Address* address, float weight, String* mailId, String* created
     return mail;
 }
 
-int PrintMail(Mail* m) {
-    Mail mail = *m;
+int mail_print(mail_t* m) {
+    mail_t mail = *m;
     printf("------------------\n");
     printf("Town: %s\n", mail.address.town.str);
     printf("Street: %s\n", mail.address.street.str);
@@ -201,7 +201,7 @@ int PrintMail(Mail* m) {
     return SUCCESS;
 }
 
-Mail* SearchMail(Post* p, char* id) {
+mail_t* mail_search(Post* p, char* id) {
     for (int i = 0; i < p->count; i++) {
         if (strcmp(p->mails[i].mailID.str, id) == 0) {
             return &p->mails[i];
@@ -210,25 +210,25 @@ Mail* SearchMail(Post* p, char* id) {
     return NULL;
 }
 
-int CompareMail(const void* a, const void* b) {
-    Mail* m1 = (Mail*)a;
-    Mail* m2 = (Mail*)b;
-    if (CompareString(&m1->address.index, &m2->address.index) != 0) {
-        return CompareString(&m1->address.index, &m2->address.index);
+int mail_cmp(const void* a, const void* b) {
+    mail_t* m1 = (mail_t*)a;
+    mail_t* m2 = (mail_t*)b;
+    if (string_cmp(&m1->address.index, &m2->address.index) != 0) {
+        return string_cmp(&m1->address.index, &m2->address.index);
     }
 
-    return CompareString(&m1->mailID, &m2->mailID);
+    return string_cmp(&m1->mailID, &m2->mailID);
 }
 
-int SortMails(Mail* mails, int size) {
-    qsort(mails, size, sizeof(Mail), CompareMail);
+int mail_sort(mail_t* mails, int size) {
+    qsort(mails, size, sizeof(mail_t), mail_cmp);
     return SUCCESS;
 }
 
 
 //Функции Address
-Address* CreateAddress(String* town, String* street, int house, String* corpus, int apartNumber, String* index) {
-    Address* a = (Address*)malloc(sizeof(Address));
+address_t* adress_init(string_t* town, string_t* street, int house, string_t* corpus, int apartNumber, string_t* index) {
+    address_t* a = (address_t*)malloc(sizeof(address_t));
     if (a == NULL) {
         return NULL;
     }
@@ -242,13 +242,13 @@ Address* CreateAddress(String* town, String* street, int house, String* corpus, 
 }
 
 //Функции Post
-Post* CreatePost(Address* address) {
+Post* post_init(address_t* address) {
     Post* p = (Post*)malloc(sizeof(Post));
     if (p == NULL) {
         return NULL;
     }
-    p->addres = address;
-    Mail* mails = (Mail*)malloc(10 * sizeof(Mail));
+    p->addres= address;
+    mail_t* mails = (mail_t*)malloc(10 * sizeof(mail_t));
     if (mails == NULL) {
         return NULL;
     }
@@ -258,24 +258,24 @@ Post* CreatePost(Address* address) {
     return p;
 }
 
-int AddMail(Post* p, Mail* m) {
+int mail_add(Post* p, mail_t* m) {
     if (p->count >= p->capacity) {
         p->capacity *= 2;
-        p->mails = (Mail*)realloc(p->mails, p->capacity * sizeof(Mail));
+        p->mails = (mail_t*)realloc(p->mails, p->capacity * sizeof(mail_t));
         if (p->mails == NULL) {
             return ERROR;
         }
     }
     p->mails[p->count++] = *m;
-    SortMails(p->mails, p->count);
+    mail_sort(p->mails, p->count);
     return SUCCESS;
 }
 
-int DeleteMail(Post* p, Mail* m) {
+int mail_delete(Post* p, mail_t* m) {
     int index = -1;
 
     for (int i = 0; i < p->count; i++) {
-        if (EquivalenceString(&p->mails[i].mailID, &m->mailID)) {
+        if (string_eq(&p->mails[i].mailID, &m->mailID)) {
             index = i;
             break;
         }
@@ -289,19 +289,19 @@ int DeleteMail(Post* p, Mail* m) {
     }
 
     p->count--;
-    SortMails(p->mails, p->count);
+    mail_sort(p->mails, p->count);
 
     return SUCCESS;
 }
 
-int DeliveryMail(Mail* m) {
-    m->deliveryTime = *CreateString(GetNowTime());
+int mail_deliver(mail_t* m) {
+    m->deliveryTime = *str_init(get_current_time());
     return SUCCESS;
 }
 
-int PrintPost(Post* p) {
+int post_print(Post* p) {
     for (int i = 0; i < p->count; i++) {
-        Mail mail = p->mails[i];
+        mail_t mail = p->mails[i];
         printf("Town: %s\n", mail.address.town.str);
         printf("Street: %s\n", mail.address.street.str);
         printf("House: %d\n", mail.address.house);
@@ -318,20 +318,20 @@ int PrintPost(Post* p) {
 }
 
 
-int PrintDelivery(Post* p) {
-    Mail* m = (Mail*)malloc(p->count * sizeof(Mail));
+int delivery_print(Post* p) {
+    mail_t* m = (mail_t*)malloc(p->count * sizeof(mail_t));
     int n = 0;
     for (int i = 0; i < p->count; i++) {
-        Mail mail = p->mails[i];
+        mail_t mail = p->mails[i];
         if (strlen(mail.deliveryTime.str) == 19) {
             m[n] = mail;
             n++;
         }
     }
     
-    qsort(m, n, sizeof(Mail), CompareTime);
+    qsort(m, n, sizeof(mail_t), time_cmp);
     for (int i = 0; i < n; i++) {
-        Mail mail = m[i];
+        mail_t mail = m[i];
         printf("Town: %s\n", mail.address.town.str);
         printf("Street: %s\n", mail.address.street.str);
         printf("House: %d\n", mail.address.house);
@@ -348,20 +348,20 @@ int PrintDelivery(Post* p) {
     return SUCCESS;
 }
 
-int PrintNotDelivery(Post* p) {
-    Mail* m = (Mail*)malloc(p->count * sizeof(Mail));
+int not_delivered_print(Post* p) {
+    mail_t* m = (mail_t*)malloc(p->count * sizeof(mail_t));
     int n = 0;
     for (int i = 0; i < p->count; i++) {
-        Mail mail = p->mails[i];
+        mail_t mail = p->mails[i];
         if (strlen(mail.deliveryTime.str) == 0) {
             m[n] = mail;
             n++;
         }
     }
     
-    qsort(m, n, sizeof(Mail), CompareTime);
+    qsort(m, n, sizeof(mail_t), time_cmp);
     for (int i = 0; i < n; i++) {
-        Mail mail = m[i];
+        mail_t mail = m[i];
         printf("Town: %s\n", mail.address.town.str);
         printf("Street: %s\n", mail.address.street.str);
         printf("House: %d\n", mail.address.house);
@@ -378,7 +378,7 @@ int PrintNotDelivery(Post* p) {
     return SUCCESS;
 }
 
-int FreePost(Post* p) {
+int post_free(Post* p) {
     for (int i = 0; i < p->count; i++) {
 
         free(p->mails[i].address.town.str);
@@ -413,11 +413,11 @@ int main() {
 
 
     //Почта России
-    Post* post = CreatePost(CreateAddress(CreateString("Москва"), CreateString("Панфилова"), 20, CreateString("4"), 7204, CreateString("734123")));
-    Address* a = CreateAddress(CreateString("Москва"), CreateString("Ленина"), 12, CreateString("3"), 724, CreateString("000000"));
-    AddMail(post, CreateMail(a, 32.4, CreateString("00000000000000"), CreateString("10:11:2006 10:22:32"), CreateString("01:11:2005 10:02:32")));
-    a = CreateAddress(CreateString("Москва"), CreateString("Пушкина"), 3, CreateString("11"), 24, CreateString("000000"));
-    AddMail(post, CreateMail(a, 3.2, CreateString("00000000000000"), CreateString("12:10:2005 09:22:32"), CreateString("01:11:2006 10:02:32")));
+    Post* post = post_init(adress_init(str_init("Москва"), str_init("Панфилова"), 20, str_init("4"), 7204, str_init("734123")));
+    address_t* a = adress_init(str_init("Москва"), str_init("Ленина"), 12, str_init("3"), 724, str_init("000000"));
+    mail_add(post, mail_init(a, 32.4, str_init("00000000000000"), str_init("10:11:2006 10:22:32"), str_init("01:11:2005 10:02:32")));
+    a = adress_init(str_init("Москва"), str_init("Пушкина"), 3, str_init("11"), 24, str_init("000000"));
+    mail_add(post, mail_init(a, 3.2, str_init("00000000000000"), str_init("12:10:2005 09:22:32"), str_init("01:11:2006 10:02:32")));
 
     
     char addMail[15] = "add";
@@ -451,47 +451,47 @@ int main() {
             float weight;
 
             scanf("%s %s %d %s %d %s %f %s", town, street, &house, corpus, &apart, index, &weight, mailid);
-            if ((ValidateIndex(index) == ERROR) || (ValidateIndex(mailid) == ERROR)) {
+            if ((validate_idx(index) == ERROR) || (validate_idx(mailid) == ERROR)) {
                 printf("Ошибка в индексе или почтовом индетификаторе\n");
                 return ERROR;
             }
-            Address* a = CreateAddress(CreateString(town), CreateString(street), house, CreateString(corpus), apart, CreateString(index));
-            int res = AddMail(post, CreateMail(a, weight, CreateString(mailid), CreateString(GetNowTime()), CreateString("")));
+            address_t* a = adress_init(str_init(town), str_init(street), house, str_init(corpus), apart, str_init(index));
+            int res = mail_add(post, mail_init(a, weight, str_init(mailid), str_init(get_current_time()), str_init("")));
             if (res == ERROR) {
                 printf("Ошибка при добавлении\n");
             } else {
                 printf("Посылка добавлена\n");
             }
         } else if (strcmp(command, printPost) == 0) {
-            PrintPost(post);
+            post_print(post);
         } else if (strcmp(command, stop) == 0) {
-            FreePost(post);
+            post_free(post);
             break;
         } else if (strcmp(command, printDelivery) == 0) {
-            PrintDelivery(post);
+            delivery_print(post);
         } else if (strcmp(command, printNotdelivery) == 0) {
-            PrintNotDelivery(post);
+            not_delivered_print(post);
         }else if (strcmp(command, search) == 0) {
             printf("Введите ID посылки\n");
             char id[14];
             scanf("%s", id);
-            Mail* m = SearchMail(post, id);
+            mail_t* m = mail_search(post, id);
             if (m == NULL) {
                 printf("Такой посылки не существует\n");
                 return ERROR;
             } else {
-                PrintMail(m);
+                mail_print(m);
             }
         } else if (strcmp(command, delete) == 0) {
             printf("Введите ID посылки\n");
             char id[14];
             scanf("%s", id);
-            Mail* m = SearchMail(post, id);
+            mail_t* m = mail_search(post, id);
             if (m == NULL) {
                 printf("Такой посылки не существует\n");
                 return ERROR;
             } else {
-                int res = DeleteMail(post, m);
+                int res = mail_delete(post, m);
                 if (res == ERROR) {
                     printf("Посылка не существует или неправильный id\n");
                     return ERROR;
@@ -504,8 +504,8 @@ int main() {
             printf("Введите ID посылки\n");
             char id[14];
             scanf("%s", id);
-            Mail* m = SearchMail(post, id);
-            int res = DeliveryMail(m);
+            mail_t* m = mail_search(post, id);
+            int res = mail_deliver(m);
             if (res == ERROR) {
                 printf("Посылка не существует или неправильный id\n");
             } else {
@@ -516,6 +516,4 @@ int main() {
             return ERROR;
         }
     }
-
-
 }
