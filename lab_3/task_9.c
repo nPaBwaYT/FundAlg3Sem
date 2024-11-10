@@ -1,179 +1,218 @@
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "my_lib/tree.h"
+typedef struct Node {
+    char* word;
+    int count;
+    struct Node* left;
+    struct Node* right;
+} Node;
 
-typedef int (*handle)(Tree *t, const char *s);
 
-int handle_get(Tree *t, const char *s) {
-    char *word;
-    parse_field_str(&word, &s, isspace);
-    int r = tree_get(t, word);
-    printf("%s is found %d times\n", word, r);
-    free(word);
-    return S_OK;
+Node* createNode(const char* word) {
+    Node* node = (Node*)malloc(sizeof(Node));
+    node->word = strdup(word);
+    node->count = 1;
+    node->left = node->right = NULL;
+    return node;
 }
 
-int handle_first(Tree *t, const char *s) {
-    size_t n;
-    parse_field_uint(&n, &s, isspace);
-    Leaf *ls;
-    int act = tree_dump_to_sorted_list(&ls, t);
-    if (act < (int)n)
-        n = act;
-    printf("%zu most common words:\n", n);
-    for (size_t i = 0; i < n; i++) {
-        Leaf l = ls[i];
-        printf("[%s]: %zu\n", l.s, l.cnt);
-    }
-    free(ls);
-    return S_OK;
-}
 
-int handle_longest(Tree *t, const char *s) {
-    (void)s;
-    char *str = "";
-    tree_longest(&str, t);
-    printf("longest word: [%s]\n", str);
-    return S_OK;
-}
-
-int handle_shortest(Tree *t, const char *s) {
-    (void)s;
-    char *str = "";
-    tree_shortest(&str, t);
-    printf("shortest word: [%s]\n", str);
-    return S_OK;
-}
-int handle_depth(Tree *t, const char *s) {
-    (void)s;
-    int depth = tree_depth(t);
-    printf("tree depth: %d\n", depth);
-    return S_OK;
-}
-
-int handle_write(Tree *t, const char *s) {
-    char *fname;
-    parse_field_str(&fname, &s, isspace);
-    FILE *f = fopen(fname, "w");
-    if (!f) {
-        fprintf(stderr, "ERROR: failed to open file [%s]\n", fname);
-        free(fname);
-        return 1;
-    }
-    free(fname);
-    return tree_write(f, t);
-}
-
-int handle_read(Tree *t, const char *s) {
-    char *fname;
-    parse_field_str(&fname, &s, isspace);
-    FILE *f = fopen(fname, "r");
-    if (!f) {
-        fprintf(stderr, "ERROR: failed to open file [%s]\n", fname);
-        free(fname);
-        return 1;
-    }
-    free(fname);
-    tree_free(t);
-    return tree_read(f, t);
-}
-
-int main(int argc, const char *argw[]) {
-    if (argc < 2) {
-        fprintf(stderr, "ERROR: input file not provided\n");
-        return 1;
-    }
-    if (argc < 3) {
-        fprintf(stderr, "ERROR: at least one separator must be provided\n");
-        return 1;
-    }
-    char *sep = malloc(argc - 1);
-    for (int i = 2; i < argc; i++) {
-        if (argw[i][0] == '\\' && strlen(argw[i]) == 2) {
-            switch (argw[i][1]) {
-            case 't':
-                sep[i - 2] = '\t';
-                break;
-            case 'n':
-                sep[i - 2] = '\n';
-                break;
-            case '\\':
-                sep[i - 2] = '\\';
-                break;
-            case '\'':
-                sep[i - 2] = '\'';
-                break;
-            case '"':
-                sep[i - 2] = '"';
-                break;
-            default:
-                fprintf(stderr, "ERROR: unsupported escape sequence: [%s]\n",
-                        argw[i]);
-                return 1;
-            }
-            continue;
-        }
-        if (strlen(argw[i]) > 1) {
-            fprintf(stderr, "ERROR: each separator must be a signle symbol\n");
-            return 1;
-        }
-        sep[i - 2] = argw[i][0];
-    }
-    sep[argc - 1] = 0;
-
-    FILE *f = fopen(argw[1], "r");
-    if (!f) {
-        fprintf(stderr, "ERROR: failed to open file [%s]\n", argw[1]);
-        free(sep);
-        return 1;
-    }
-
-    Tree t = {0};
-    Status s = tree_parse_file(&t, sep, f);
-    fclose(f);
-    free(sep);
-
-    const char *ops[] = {"Get",   "First", "Longest", "Shortest",
-                         "Depth", "Write", "Read"};
+Node* insert(Node* root, const char* word) {
+    if (root == NULL) return createNode(word);
     
-    handle handles[] = {handle_get,      handle_first, handle_longest,
-                        handle_shortest, handle_depth, handle_write,
-                        handle_read};
-
-    char *line = NULL;
-    size_t line_len = 0;
-    while (true) {
-        int n = getline(&line, &line_len, stdin);
-        if (n <= 1)
-            break;
-        n--;
-        line[n] = 0;
-
-        const char *s = line;
-        char *op;
-        parse_field_str(&op, &s, isspace);
-        handle *h = NULL;
-        for (size_t i = 0; i < sizeof(ops) / sizeof(ops[0]) && !h; i++)
-            if (strcmp(op, ops[i]) == 0)
-                h = &handles[i];
-
-        if (!h) {
-            fprintf(stderr, "ERROR: unknown operation [%s]\n", line);
-            fprintf(stderr, "supported operations: {");
-            for (size_t i = 0; i < sizeof(ops) / sizeof(ops[0]); i++) {
-                fprintf(stderr, "%s, ", ops[i]);
-            }
-            fprintf(stderr, "}\n");
-        } else {
-            (*h)(&t, s);
-        }
-        free(op);
+    int cmp = strcmp(word, root->word);
+    if (cmp == 0) {
+        root->count++;
+    } else if (cmp < 0) {
+        root->left = insert(root->left, word);
+    } else {
+        root->right = insert(root->right, word);
     }
-    free(line);
+    return root;
+}
 
-    tree_free(&t);
-    return s;
+
+Node* find(Node* root, const char* word) {
+    if (root == NULL) return NULL;
+    int cmp = strcmp(word, root->word);
+    if (cmp == 0) return root;
+    return cmp < 0 ? find(root->left, word) : find(root->right, word);
+}
+
+void processFile(Node** root, const char* filename, const char* delimiters) {
+    FILE* file = fopen(filename, "r");
+    if (!file) {
+        perror("Ошибка открытия файла");
+        exit(EXIT_FAILURE);
+    }
+    
+    char word[BUFSIZ];
+    while (fscanf(file, "%255s", word) == 1) {
+        char* token = strtok(word, delimiters);
+        while (token != NULL) {
+            *root = insert(*root, token);
+            token = strtok(NULL, delimiters);
+        }
+    }
+    fclose(file);
+}
+
+
+
+void collectNodes(Node* root, Node* array[], int* index) {
+    if (root == NULL) return;
+    
+    collectNodes(root->left, array, index);
+    array[(*index)++] = root;
+    collectNodes(root->right, array, index);
+}
+
+
+int compareNodes(const void* a, const void* b) {
+    Node* nodeA = *(Node**)a;
+    Node* nodeB = *(Node**)b;
+    return nodeB->count - nodeA->count; 
+}
+
+void printMostFrequent(Node* root, int n) {
+
+    int nodeCount = 0;
+    Node* tempArray[BUFSIZ];
+
+    collectNodes(root, tempArray, &nodeCount);
+
+
+    qsort(tempArray, nodeCount, sizeof(Node*), compareNodes);
+
+
+    for (int i = 0; i < n && i < nodeCount; i++) {
+        printf("%s: %d раз\n", tempArray[i]->word, tempArray[i]->count);
+    }
+}
+
+int findLongestShortest(Node* root, Node** longest, Node** shortest) {
+    if (root == NULL) return -1;
+    if (!*longest || strlen(root->word) > strlen((*longest)->word)) *longest = root;
+    if (!*shortest || strlen(root->word) < strlen((*shortest)->word)) *shortest = root;
+    findLongestShortest(root->left, longest, shortest);
+    findLongestShortest(root->right, longest, shortest);
+    return 0;
+}
+
+int findDepth(Node* root) {
+    if (root == NULL) return 0;
+    int leftDepth = findDepth(root->left);
+    int rightDepth = findDepth(root->right);
+    return 1 + (leftDepth > rightDepth ? leftDepth : rightDepth);
+}
+
+void saveTree(Node* root, FILE* file) {
+    if (root == NULL) {
+        fprintf(file, "() ");
+        return;
+    }
+    fprintf(file, "(%s %d ", root->word, root->count);
+    saveTree(root->left, file);
+    saveTree(root->right, file);
+    fprintf(file, ") ");
+}
+
+Node* loadTree(FILE* file) {
+    char word[BUFSIZ];
+    int count;
+    if (fscanf(file, " ( %255s %d ", word, &count) != 2) return NULL;
+    if (strcmp(word, "()") == 0) return NULL;
+
+    Node* root = createNode(word);
+    root->count = count;
+    root->left = loadTree(file);
+    root->right = loadTree(file);
+    fscanf(file, " ) ");
+    return root;
+}
+
+void freeTree(Node* root) {
+    if (root == NULL) {
+        return;
+    }
+    
+
+    freeTree(root->left);
+    freeTree(root->right);
+
+    free(root);
+}
+
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        printf("Использование: %s <файл> <сепараторы>\n", argv[0]);
+        return 1;
+    }
+
+    Node* root = NULL;
+    processFile(&root, argv[1], argv[2]);
+
+    int choice;
+    char word[BUFSIZ];
+    int n;
+    Node *minNode = NULL, *maxNode = NULL;
+
+    while (1) {
+        printf("\nВыберите опцию:\n");
+        printf("1. Узнать, сколько раз слово встречалось в файле\n");
+        printf("2. Вывести n наиболее часто встречающихся слов\n");
+        printf("3. Найти самое длинное и самое короткое слово\n");
+        printf("4. Найти глубину дерева\n");
+        printf("5. Сохранить дерево\n");
+        printf("6. Загрузить дерево\n");
+        printf("7. Выйти\n");
+        printf("Ваш выбор: ");
+        scanf("%d", &choice);
+
+        switch (choice) {
+            case 1:
+                printf("Введите слово: ");
+                scanf("%s", word);
+                Node *found = find(root, word);
+                if (found) {
+                    printf("Слово \"%s\" встречается %d раз(а).\n", word, found->count);
+                } else {
+                    printf("Слово \"%s\" не найдено.\n", word);
+                }
+                break;
+            case 2:
+                printf("Введите значение n: ");
+                scanf("%d", &n);
+                printMostFrequent(root, n);
+                break;
+            case 3:
+                if (findLongestShortest(root, &maxNode, &minNode) == 0 && minNode && maxNode) {
+                    printf("Самое короткое слово: %s\n", minNode->word);
+                    printf("Самое длинное слово: %s\n", maxNode->word);
+                }
+                break;
+            case 4:
+                printf("Глубина дерева: %d\n", findDepth(root));
+                break;
+            case 5:
+                FILE* file = fopen("tree.txt", "w");
+                saveTree(root, file);
+                fclose(file);
+                break;
+            case 6:
+                FILE* fileRead = fopen("tree.txt", "r");
+                root = loadTree(fileRead);
+                fclose(fileRead);
+                break;
+            case 7:
+                printf("Выход из программы.\n");
+                freeTree(root);
+                return 0;
+            default:
+                printf("Некорректный выбор.\n");
+        }
+    }
+    return 0;
 }

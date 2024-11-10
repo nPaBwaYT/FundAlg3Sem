@@ -7,7 +7,7 @@ OUTPUT_DIR=./output
 LIB_DIR=./my_lib
 TEST_TEMPLATES_DIR=../test_templates
 EXECUTABLES=$(SOURCES:.c=.out)
-MY_LIBS=poly.lib tree.lib
+MY_LIBS=poly.lib
 BASH=bash
 
 
